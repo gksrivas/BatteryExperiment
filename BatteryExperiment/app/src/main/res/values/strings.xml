@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BatteryExperiment</string>
+    <string name="battery_level">Battery level:</string>
+    <string name="experiment_start_time">Experiment start time:</string>
+</resources>
