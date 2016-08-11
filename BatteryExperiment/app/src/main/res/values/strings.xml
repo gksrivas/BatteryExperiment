@@ -2,4 +2,13 @@
     <string name="app_name">BatteryExperiment</string>
     <string name="battery_level">Battery level:</string>
     <string name="experiment_start_time">Experiment start time:</string>
+    <string name="time_elapsed">Time Elapsed (in Seconds):</string>
+
+    <string name="battery_decrease">
+        Battery Consumed since experiment start (in Percentage):
+    </string>
+
+    <string name="average_time_per_battery_percent">
+        Average Time (in Seconds) per Battery Percent decrease:
+    </string>
 </resources>
