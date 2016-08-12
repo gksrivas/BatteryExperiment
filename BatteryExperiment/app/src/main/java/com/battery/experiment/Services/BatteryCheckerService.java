@@ -4,18 +4,19 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.battery.experiment.R;
+import com.battery.experiment.Model.BatteryExperimentResult;
 
 /**
  * Created by gary on 11/08/16.
  */
 
 public class BatteryCheckerService extends Service{
-    public Runnable mRunnable = null;
+    private static BatteryExperimentResult mBatteryExperimentResult;
     private BroadcastReceiver mReceiver;
 
     public BatteryCheckerService() {
@@ -31,13 +32,15 @@ public class BatteryCheckerService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mReceiver = new BatteryBroadcastReceiver();
+        registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-
+        unregisterReceiver(mReceiver);
+        Log.d("Inside", "Stop Service");
         stopSelf();
     }
 
@@ -45,7 +48,7 @@ public class BatteryCheckerService extends Service{
         @Override
         public void onReceive(Context context, Intent intent) {
             int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            Log.d("", "");
+            Log.d("Level", "" + level);
         }
     }
 }
