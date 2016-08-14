@@ -8,33 +8,44 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     tools:context=".MainActivity">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    <TextView
-        android:id="@+id/batteryLevel"
-        android:text="@string/battery_level"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
-    <ProgressBar
-        android:id="@+id/batteryLevelBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_marginTop="8dp"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
-        android:max="100"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/batteryLevel"
-        android:layout_toRightOf="@+id/batteryLevel"
-        android:layout_toEndOf="@+id/batteryLevel" />
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/startExperiment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Experiment"
+            />
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/batteryLevel"
+            android:text="@string/battery_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <ProgressBar
+            android:id="@+id/batteryLevelBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:max="100"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/batteryLevel"
+            android:layout_toRightOf="@+id/batteryLevel"
+            android:layout_toEndOf="@+id/batteryLevel" />
 
         <TextView
             android:id="@+id/experimentStartTime"

@@ -2,13 +2,16 @@ package com.battery.experiment.DB;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.battery.experiment.Model.BatteryExperimentResult;
+import com.battery.experiment.Model.BatteryResultDBModel;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -25,11 +28,13 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
 
     private static final String SQL_CREATE_FIELDS_TABLE =
             "CREATE TABLE " + BatteryExperimentDBContract.FieldsTable.TABLE_NAME + " (" +
-                    BatteryExperimentDBContract.FieldsTable._ID + " INTEGER PRIMARY KEY," +
+                    BatteryExperimentDBContract.FieldsTable._ID + " TEXT PRIMARY KEY," +
                     BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL + " INTEGER DEFAULT 0," +
+                    BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CURRENT_BATTERY_LEVEL + " INTEGER DEFAULT 0," +
                     BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME + " INTEGER DEFAULT 0," +
                     BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CONSUMED_BATTERY + " INTEGER DEFAULT 0," +
-                    BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING + " INTEGER DEFAULT 0," +
+                    BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING + " INTEGER DEFAULT 100," +
+                    BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_AVG_TIME_PER_BATTERY + " TEXT NOT NULL," +
                     BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME + " TIMESTAMP" +
                     ")";
 
@@ -42,7 +47,7 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        Log.d("AppDetailsDBHelper", "DB Created");
+        Log.d("BatteryExperiment", "DB Created");
         db.execSQL(SQL_CREATE_FIELDS_TABLE);
     }
 
@@ -67,10 +72,9 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
         db.close();
     }
 
-    private String getDateTime() {
+    private String getDateTime(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(
                 "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        Date date = new Date();
         return dateFormat.format(date);
     }
 
@@ -81,13 +85,78 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
 
         String tableName = BatteryExperimentDBContract.FieldsTable.TABLE_NAME;
         ContentValues values = new ContentValues();
+
+        values.put(BatteryExperimentDBContract.FieldsTable._ID,
+                batteryExperimentResult.id);
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
+                batteryExperimentResult.startBatteryLevel);
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
                 batteryExperimentResult.startBatteryLevel);
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME,
-                getDateTime());
+                getDateTime(batteryExperimentResult.experimentStartTime));
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME,
+                batteryExperimentResult.getElapsedTime());
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CONSUMED_BATTERY,
+                batteryExperimentResult.getPercentBatteryDecrease());
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_AVG_TIME_PER_BATTERY,
+                batteryExperimentResult.getAverageTimePerBatteryPercentage());
 
         // Insert the new row, returning the primary key value of the new row
         return db.insertWithOnConflict(tableName, null, values, CONFLICT_REPLACE);
+    }
+
+    public ArrayList<String> getBatteryExperimentDetails() {
+        String tableName = BatteryExperimentDBContract.FieldsTable.TABLE_NAME;
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                BatteryExperimentDBContract.FieldsTable._ID,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CONSUMED_BATTERY,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_AVG_TIME_PER_BATTERY,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING
+        };
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selection = BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING + "=?";
+        String[] selectionArgs = {"0"};
+
+
+        Cursor c = db.query(true,
+                tableName,
+                projection,                              // The columns to return
+                selection,                               // The columns for the WHERE clause
+                selectionArgs,                           // The values for the WHERE clause
+                null,                                    // don't group the rows
+                null,                                    // don't filter by row groups
+                null,                                    // no sort order
+                null                                     // limit on results
+        );
+
+        if (c.getCount() == 0) {
+            Log.d("NO", "Experiment done yet.");
+            return null;
+        }
+
+        ArrayList<String> results = new ArrayList<>();
+        while (c.moveToNext()) {
+            BatteryResultDBModel batteryResultDBModel = new BatteryResultDBModel();
+
+            batteryResultDBModel.experimentId =
+                    c.getString(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable._ID));
+
+            batteryResultDBModel.batteryLevel =
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.C));
+            Log.d("Fast Path Eligible:", experimentID);
+            results.add(experimentID);
+        }
+        c.close();
+
+        return results;
     }
 
 }

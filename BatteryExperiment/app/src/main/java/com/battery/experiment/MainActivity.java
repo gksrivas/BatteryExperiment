@@ -1,27 +1,23 @@
 package com.battery.experiment;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.battery.experiment.Model.BatteryExperimentResult;
 import com.battery.experiment.Services.BatteryCheckerService;
-import com.battery.experiment.Util.PrefManager;
 
-import java.util.Date;
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
-public class MainActivity extends Activity {
-    private PrefManager prefManager;
 
-    private static int counter;
-    private static BatteryExperimentResult batteryExperimentResult;
+public class MainActivity extends Activity implements View.OnClickListener{
+
+    private boolean runningExperiment;
 
     private TextView mBatteryLevelText;
     private ProgressBar mBatteryLevelProgress;
@@ -30,7 +26,7 @@ public class MainActivity extends Activity {
     private TextView mPercentageBatteryDecrease;
     private TextView mAvgTimePerBatteryPercent;
 
-    private BroadcastReceiver mReceiver;
+    private Button mStartExperimentButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +40,52 @@ public class MainActivity extends Activity {
         mPercentageBatteryDecrease = (TextView) findViewById(R.id.percentDecreaseInBattery);
         mAvgTimePerBatteryPercent = (TextView) findViewById(R.id.averageTimePerBatteryPercentage);
 
+        mStartExperimentButton = (Button) findViewById(R.id.startExperiment);
+        mStartExperimentButton.setOnClickListener(this);
+
+        makeInfoUIInvisible();
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (runningExperiment) {
+            stopExperiment();
+            Log.d("Stop", "Experiment");
+        } else {
+            startExperiment();
+            Log.d("Start", "Experiment");
+        }
+    }
+
+    private void startExperiment() {
         startService(new Intent(this, BatteryCheckerService.class));
+        makeInfoUIVisible();
+        mStartExperimentButton.setText("Stop Experiment");
+        runningExperiment = true;
+    }
+
+    private void stopExperiment() {
+        stopService(new Intent(this, BatteryCheckerService.class));
+        makeInfoUIInvisible();
+        mStartExperimentButton.setText("Start Experiment");
+        runningExperiment = false;
+    }
+
+    private void makeInfoUIVisible() {
+        mBatteryLevelText.setVisibility(VISIBLE);
+        mBatteryLevelProgress.setVisibility(VISIBLE);
+        mExperimentStartTime.setVisibility(VISIBLE);
+        mTimeElapsed.setVisibility(VISIBLE);
+        mPercentageBatteryDecrease.setVisibility(VISIBLE);
+        mAvgTimePerBatteryPercent.setVisibility(VISIBLE);
+    }
+
+    private void makeInfoUIInvisible() {
+        mBatteryLevelText.setVisibility(GONE);
+        mBatteryLevelProgress.setVisibility(GONE);
+        mExperimentStartTime.setVisibility(GONE);
+        mTimeElapsed.setVisibility(GONE);
+        mPercentageBatteryDecrease.setVisibility(GONE);
+        mAvgTimePerBatteryPercent.setVisibility(GONE);
     }
 }

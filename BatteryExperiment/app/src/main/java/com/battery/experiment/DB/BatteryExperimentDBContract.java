@@ -19,7 +19,9 @@ public class BatteryExperimentDBContract {
         public static final String COLUMN_NAME_START_BATTERY_LEVEL = "start_battery_level";
         public static final String COLUMN_NAME_START_EXPERIMENT_TIME = "start_experiment_time";
         public static final String COLUMN_NAME_ELAPSED_TIME = "elapsed_time";
+        public static final String COLUMN_NAME_CURRENT_BATTERY_LEVEL = "current_battery_level";
         public static final String COLUMN_NAME_CONSUMED_BATTERY = "consumed_battery";
+        public static final String COLUMN_NAME_AVG_TIME_PER_BATTERY = "avg_time_battery";
         public static final String COLUMN_NAME_IS_EXPERIMENT_RUNNING = "experiment_running";
     }
 }

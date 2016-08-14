@@ -13,11 +13,13 @@ import java.util.Locale;
 
 public class BatteryExperimentResult implements Serializable {
 
+    public String id;
     public int startBatteryLevel;
     public Date experimentStartTime;
 
     public int batteryLevel;
     private long elapsedTimeInSeconds;
+    public int experimentRunning;
 
     public String getAverageTimePerBatteryPercentage() {
         Date date = new Date();
