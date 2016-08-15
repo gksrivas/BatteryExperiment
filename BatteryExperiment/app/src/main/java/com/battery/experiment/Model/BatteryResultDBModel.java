@@ -9,7 +9,7 @@ import java.util.Date;
 public class BatteryResultDBModel {
     public String experimentId;
     public int batteryLevel;
-    public Date experimentStartTime;
+    public String experimentStartTime;
     public int elapsedTime;
     public int batteryConsumed;
     public int avgTimePerBatteryPercent;

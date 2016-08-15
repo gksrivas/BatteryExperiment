@@ -9,7 +9,11 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.battery.experiment.DB.BatteryExperimentDBHelper;
+import com.battery.experiment.Model.BatteryResultDBModel;
 import com.battery.experiment.Services.BatteryCheckerService;
+
+import java.util.ArrayList;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -43,7 +47,20 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mStartExperimentButton = (Button) findViewById(R.id.startExperiment);
         mStartExperimentButton.setOnClickListener(this);
 
-        makeInfoUIInvisible();
+        BatteryExperimentDBHelper batteryExperimentDBHelper = new BatteryExperimentDBHelper(this);
+        batteryExperimentDBHelper.getReadableDatabase();
+        runningExperiment = batteryExperimentDBHelper.isAnyExperimentRunning();
+
+        reloadUI("onCreate");
+    }
+
+    private void reloadUI(String logText) {
+        Log.d("ReloadUI from", logText);
+        if (runningExperiment) {
+            makeInfoUIVisible();
+        } else {
+            makeInfoUIInvisible();
+        }
     }
 
     @Override
@@ -60,14 +77,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private void startExperiment() {
         startService(new Intent(this, BatteryCheckerService.class));
         makeInfoUIVisible();
-        mStartExperimentButton.setText("Stop Experiment");
         runningExperiment = true;
     }
 
     private void stopExperiment() {
         stopService(new Intent(this, BatteryCheckerService.class));
         makeInfoUIInvisible();
-        mStartExperimentButton.setText("Start Experiment");
         runningExperiment = false;
     }
 
@@ -78,6 +93,11 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mTimeElapsed.setVisibility(VISIBLE);
         mPercentageBatteryDecrease.setVisibility(VISIBLE);
         mAvgTimePerBatteryPercent.setVisibility(VISIBLE);
+
+        mStartExperimentButton.setText("Stop Experiment");
+
+        //Once you have made the UI visible also populate the data.
+        populateDataInUI();
     }
 
     private void makeInfoUIInvisible() {
@@ -87,5 +107,33 @@ public class MainActivity extends Activity implements View.OnClickListener{
         mTimeElapsed.setVisibility(GONE);
         mPercentageBatteryDecrease.setVisibility(GONE);
         mAvgTimePerBatteryPercent.setVisibility(GONE);
+
+        mStartExperimentButton.setText("Start Experiment");
+    }
+
+    private void populateDataInUI() {
+        BatteryExperimentDBHelper batteryExperimentDBHelper =  new BatteryExperimentDBHelper(this);
+        ArrayList<BatteryResultDBModel> experimentDataFromDB =
+                batteryExperimentDBHelper.getBatteryExperimentDetails();
+
+        if (experimentDataFromDB != null) {
+            BatteryResultDBModel batteryResultDBModel = experimentDataFromDB.get(0);
+            mBatteryLevelText.setText(getString(R.string.battery_level) + batteryResultDBModel.batteryLevel);
+            mBatteryLevelProgress.setProgress(batteryResultDBModel.batteryLevel);
+            mExperimentStartTime.setText(getString(R.string.experiment_start_time)
+                    + batteryResultDBModel.experimentStartTime
+            );
+            mTimeElapsed.setText(getString(R.string.time_elapsed) + batteryResultDBModel.elapsedTime);
+            mPercentageBatteryDecrease.setText(getString(R.string.battery_decrease) + batteryResultDBModel.batteryConsumed);
+            Log.d("Some ", "experiment is running" + experimentDataFromDB.size());
+        } else {
+            Log.d("NO ", "experiment running");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        reloadUI("onResume");
     }
 }

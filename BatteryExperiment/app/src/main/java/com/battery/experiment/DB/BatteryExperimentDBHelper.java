@@ -90,8 +90,8 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
                 batteryExperimentResult.id);
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
                 batteryExperimentResult.startBatteryLevel);
-        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
-                batteryExperimentResult.startBatteryLevel);
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CURRENT_BATTERY_LEVEL,
+                batteryExperimentResult.batteryLevel);
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME,
                 getDateTime(batteryExperimentResult.experimentStartTime));
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME,
@@ -100,19 +100,22 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
                 batteryExperimentResult.getPercentBatteryDecrease());
         values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_AVG_TIME_PER_BATTERY,
                 batteryExperimentResult.getAverageTimePerBatteryPercentage());
+        values.put(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING,
+                batteryExperimentResult.experimentRunning);
+
 
         // Insert the new row, returning the primary key value of the new row
         return db.insertWithOnConflict(tableName, null, values, CONFLICT_REPLACE);
     }
 
-    public ArrayList<String> getBatteryExperimentDetails() {
+    public ArrayList<BatteryResultDBModel> getBatteryExperimentDetails() {
         String tableName = BatteryExperimentDBContract.FieldsTable.TABLE_NAME;
 
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
                 BatteryExperimentDBContract.FieldsTable._ID,
-                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_BATTERY_LEVEL,
+                BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CURRENT_BATTERY_LEVEL,
                 BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME,
                 BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME,
                 BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CONSUMED_BATTERY,
@@ -142,7 +145,7 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
             return null;
         }
 
-        ArrayList<String> results = new ArrayList<>();
+        ArrayList<BatteryResultDBModel> results = new ArrayList<>();
         while (c.moveToNext()) {
             BatteryResultDBModel batteryResultDBModel = new BatteryResultDBModel();
 
@@ -150,13 +153,65 @@ public class BatteryExperimentDBHelper  extends SQLiteOpenHelper {
                     c.getString(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable._ID));
 
             batteryResultDBModel.batteryLevel =
-                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.C));
-            Log.d("Fast Path Eligible:", experimentID);
-            results.add(experimentID);
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CURRENT_BATTERY_LEVEL));
+
+            batteryResultDBModel.experimentStartTime =
+                    c.getString(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_START_EXPERIMENT_TIME));
+
+            batteryResultDBModel.elapsedTime =
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_ELAPSED_TIME));
+
+            batteryResultDBModel.batteryConsumed =
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_CONSUMED_BATTERY));
+
+            batteryResultDBModel.avgTimePerBatteryPercent =
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_AVG_TIME_PER_BATTERY));
+
+            batteryResultDBModel.isExperimentRunning =
+                    c.getInt(c.getColumnIndex(BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING));
+
+            results.add(batteryResultDBModel);
         }
         c.close();
 
         return results;
     }
 
+    public boolean isAnyExperimentRunning() {
+        int results;
+        String tableName = BatteryExperimentDBContract.FieldsTable.TABLE_NAME;
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                BatteryExperimentDBContract.FieldsTable._ID,
+        };
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selection = BatteryExperimentDBContract.FieldsTable.COLUMN_NAME_IS_EXPERIMENT_RUNNING + "=?";
+        String[] selectionArgs = {"0"};
+
+
+        Cursor c = db.query(true,
+                tableName,
+                projection,                              // The columns to return
+                selection,                               // The columns for the WHERE clause
+                selectionArgs,                           // The values for the WHERE clause
+                null,                                    // don't group the rows
+                null,                                    // don't filter by row groups
+                null,                                    // no sort order
+                null                                     // limit on results
+        );
+
+        results = c.getCount();
+        c.close();
+
+        if (results == 0) {
+            Log.d("NO", "Experiment done yet.");
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

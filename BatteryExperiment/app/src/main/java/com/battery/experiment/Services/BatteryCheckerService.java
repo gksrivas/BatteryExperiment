@@ -69,6 +69,7 @@ public class BatteryCheckerService extends Service {
                 mBatteryExperimentResult.batteryLevel = level;
                 mBatteryExperimentResult.experimentStartTime = new Date();
             } else {
+                mBatteryExperimentResult.experimentRunning = 0;
                 mBatteryExperimentResult.batteryLevel = level;
             }
             batteryExperimentDBHelper.insertProcessedField(mBatteryExperimentResult);
@@ -79,6 +80,8 @@ public class BatteryCheckerService extends Service {
     public void onDestroy() {
         Log.d("Stop Service", "onDestroy");
         unregisterReceiver(mReceiver);
+        mBatteryExperimentResult.experimentRunning = 1;
+        batteryExperimentDBHelper.insertProcessedField(mBatteryExperimentResult);
         batteryExperimentDBHelper.close();
     }
 }
