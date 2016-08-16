@@ -18,7 +18,7 @@
         <service
             android:enabled="true"
             android:name=".Services.BatteryCheckerService"
-            />
+            android:stopWithTask="false"/>
 
     </application>
 

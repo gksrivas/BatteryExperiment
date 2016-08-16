@@ -72,7 +72,11 @@ public class BatteryCheckerService extends Service {
                 mBatteryExperimentResult.experimentRunning = 0;
                 mBatteryExperimentResult.batteryLevel = level;
             }
-            batteryExperimentDBHelper.insertProcessedField(mBatteryExperimentResult);
+            if(mBatteryExperimentResult.getPercentBatteryDecrease() >= 3){
+                stopSelf();
+            } else {
+                batteryExperimentDBHelper.insertProcessedField(mBatteryExperimentResult);
+            }
         }
     }
 
